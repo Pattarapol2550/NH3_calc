@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NH₃ Refrigeration Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:     #f5f7fa;
+  --bg2:    #ffffff;
+  --bg3:    #eef1f6;
+  --bg4:    #e4e8f0;
+  --border: #d0d7e3;
+  --border2:#b8c2d4;
+  --blue:   #1a6fdb;
+  --blue-d: rgba(26,111,219,0.08);
+  --green:  #0f9e6e;
+  --green-d:rgba(15,158,110,0.08);
+  --amber:  #c47a00;
+  --amber-d:rgba(196,122,0,0.08);
+  --red:    #d63050;
+  --red-d:  rgba(214,48,80,0.08);
+  --text:   #1a2035;
+  --text2:  #4a5570;
+  --text3:  #8892aa;
+  --mono:   'IBM Plex Mono', monospace;
+  --sans:   'IBM Plex Sans Thai', sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;font-size:14px}
+
+.app{max-width:1080px;margin:0 auto;padding:28px 20px 80px}
+
+/* ── Header ── */
+header{display:flex;align-items:center;justify-content:space-between;
+  border-bottom:2px solid var(--border);padding-bottom:20px;margin-bottom:24px}
+header h1{font-family:var(--mono);font-size:20px;font-weight:600;color:var(--blue)}
+header p{font-size:12px;color:var(--text2);margin-top:3px}
+.badge{font-family:var(--mono);font-size:11px;color:var(--blue);
+  background:var(--blue-d);border:1px solid rgba(26,111,219,0.25);
+  padding:4px 10px;border-radius:4px;white-space:nowrap}
+
+/* ── Chain bar ── */
+.chain{display:flex;background:var(--bg2);border:1px solid var(--border);
+  border-radius:8px;overflow:hidden;margin-bottom:24px;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.cs{flex:1;padding:9px 10px;text-align:center;border-right:1px solid var(--border)}
+.cs:last-child{border-right:none}
+.cs-tag{font-size:9px;color:var(--text3);font-family:var(--mono);letter-spacing:.5px;text-transform:uppercase}
+.cs-f{font-size:11px;color:var(--blue);font-family:var(--mono);margin-top:2px}
+
+/* ── Layout ── */
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+@media(max-width:680px){.cols{grid-template-columns:1fr}}
+
+/* ── Panel ── */
+.panel{background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+  overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+.ph{display:flex;align-items:center;gap:9px;padding:11px 15px;
+  border-bottom:1px solid var(--border);background:var(--bg3)}
+.pnum{font-family:var(--mono);font-size:10px;font-weight:600;
+  width:20px;height:20px;border-radius:3px;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0;color:#fff}
+.pnum.c{background:var(--blue)} .pnum.g{background:var(--green)} .pnum.a{background:var(--amber)}
+.ph h2{font-size:13px;font-weight:500;color:var(--text)}
+.pb{padding:15px}
+
+/* ── Constant notice ── */
+.const-notice{background:var(--blue-d);border:1px solid rgba(26,111,219,0.2);
+  border-radius:6px;padding:8px 12px;font-family:var(--mono);font-size:11px;
+  color:var(--blue);margin-bottom:12px}
+
+/* ── Formula hint ── */
+.fhint{background:var(--bg3);border:1px solid var(--border);
+  border-left:3px solid var(--blue);border-radius:6px;
+  padding:9px 13px;margin-bottom:12px;font-family:var(--mono);
+  font-size:11px;color:var(--text2);line-height:1.9}
+.fhint.g{border-left-color:var(--green)}
+.fhint b{color:var(--blue)} .fhint.g b{color:var(--green)}
+.fhint .dim{color:var(--text3)}
+
+/* ── Fields ── */
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px}
+.frow.one{grid-template-columns:1fr}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:10px;font-family:var(--mono);color:var(--text2);letter-spacing:.3px}
+.field label .unit{color:var(--text3)}
+.field input{background:var(--bg);border:1.5px solid var(--border);border-radius:6px;
+  padding:8px 11px;font-size:13px;font-family:var(--mono);color:var(--text);width:100%;
+  transition:border-color .15s}
+.field input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,111,219,0.1)}
+.field input::placeholder{color:var(--text3)}
+
+/* ── Button ── */
+.btn{width:100%;padding:13px;background:var(--blue);color:#fff;border:none;
+  border-radius:8px;font-family:var(--mono);font-size:14px;font-weight:600;
+  letter-spacing:.5px;cursor:pointer;margin:4px 0 16px;
+  transition:background .15s,transform .1s;box-shadow:0 2px 6px rgba(26,111,219,0.3)}
+.btn:hover{background:#155cc0} .btn:active{transform:scale(.99)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ── Big result cards ── */
+.rcards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+@media(max-width:680px){.rcards{grid-template-columns:1fr 1fr}}
+.rcard{background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+  padding:13px 15px;position:relative;overflow:hidden;
+  box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+.rcard::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.rcard.c::before{background:var(--blue)}
+.rcard.g::before{background:var(--green)}
+.rcard.a::before{background:var(--amber)}
+.rcard.m::before{background:linear-gradient(90deg,var(--blue),var(--green))}
+.rl{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.8px;
+  color:var(--text3);margin-bottom:5px}
+.rv{font-family:var(--mono);font-size:22px;font-weight:600;line-height:1}
+.rv.c{color:var(--blue)} .rv.g{color:var(--green)} .rv.a{color:var(--amber)}
+.ru{font-size:11px;font-weight:400;color:var(--text2);margin-left:3px}
+.rsub{font-size:10px;color:var(--text3);margin-top:5px;font-family:var(--mono)}
+
+/* ── Detail table ── */
+.dtable-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+  overflow:hidden;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+.dtable-wrap .ph{cursor:pointer;user-select:none}
+.dtable-wrap .ph:hover{background:var(--bg4)}
+.toggle{margin-left:auto;color:var(--text3);font-family:var(--mono);
+  font-size:14px;transition:transform .2s}
+.toggle.open{transform:rotate(180deg)}
+table.dt{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
+table.dt tr{border-bottom:1px solid var(--border)}
+table.dt tr:last-child{border-bottom:none}
+table.dt td{padding:7px 16px}
+table.dt td:first-child{color:var(--text2);width:58%}
+table.dt td:last-child{text-align:right;font-weight:500;color:var(--text)}
+table.dt .sec td{background:var(--bg3);color:var(--text3);font-size:9px;
+  text-transform:uppercase;letter-spacing:.8px;padding:5px 16px}
+
+/* ── Formula reference ── */
+.fref{background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+  overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+.fref .ph{cursor:pointer;user-select:none} .fref .ph:hover{background:var(--bg4)}
+.fref-body{padding:20px;display:none}
+.fblock{margin-bottom:18px} .fblock:last-child{margin-bottom:0}
+.fblock h3{font-family:var(--mono);font-size:10px;text-transform:uppercase;
+  letter-spacing:1px;color:var(--blue);margin-bottom:9px;
+  padding-bottom:5px;border-bottom:1px solid var(--border)}
+.fblock h3.g{color:var(--green)} .fblock h3.a{color:var(--amber)}
+.eq{background:var(--bg3);border:1px solid var(--border);border-radius:6px;
+  padding:9px 13px;font-family:var(--mono);font-size:12px;
+  color:var(--text);margin-bottom:7px;line-height:1.8}
+.eq b{color:var(--blue)} .eq.g b{color:var(--green)} .eq.a b{color:var(--amber)}
+.eq .cm{color:var(--text3);font-size:10px}
+
+/* ── Warnings ── */
+.wbox{border-radius:7px;padding:9px 13px;margin-bottom:8px;
+  font-family:var(--mono);font-size:12px;border:1px solid}
+.wbox.warning{background:var(--amber-d);border-color:rgba(196,122,0,.25);color:var(--amber)}
+.wbox.danger {background:var(--red-d);  border-color:rgba(214,48,80,.25);color:var(--red)}
+
+/* ── Loading spinner ── */
+.spinner{display:inline-block;width:14px;height:14px;
+  border:2px solid rgba(255,255,255,.3);border-top-color:#fff;
+  border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="app">
+
+<header>
+  <div>
+    <h1>NH₃ Refrigeration Calculator</h1>
+    <p>Powered by CoolProp — REFPROP-quality NH₃ properties</p>
+  </div>
+  <div class="badge">R-717 · FastAPI + CoolProp</div>
+</header>
+
+<!-- Chain -->
+<div class="chain">
+  <div class="cs"><div class="cs-tag">Step 1</div><div class="cs-f">I → P_comp</div></div>
+  <div class="cs"><div class="cs-tag">Step 2</div><div class="cs-f">CoolProp(SP,DP) → h₁–h₄</div></div>
+  <div class="cs"><div class="cs-tag">Step 3</div><div class="cs-f">(h₁−h₄)/(h₂−h₁) → COP</div></div>
+  <div class="cs"><div class="cs-tag">Step 4</div><div class="cs-f">P_comp×COP → Q_e → ṁ</div></div>
+</div>
+
+<!-- Inputs -->
+<div class="cols">
+  <!-- Electrical -->
+  <div class="panel">
+    <div class="ph"><div class="pnum c">1</div><h2>Electrical Measurement</h2></div>
+    <div class="pb">
+      <div class="fhint">
+        <b>P_comp</b> = 1.732 × 385V × I × 0.86 ÷ 1000 <span class="dim">[kW]</span>
+      </div>
+      <div class="const-notice">V = 385 V &nbsp;·&nbsp; PF = 0.86 &nbsp;(ค่าคงที่)</div>
+      <div class="frow one">
+        <div class="field">
+          <label>Current – I <span class="unit">[A]</span></label>
+          <input id="cur" type="number" step="0.1" placeholder="เช่น 196">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conditions -->
+  <div class="panel">
+    <div class="ph"><div class="pnum g">2</div><h2>Suction / Discharge Conditions</h2></div>
+    <div class="pb">
+      <div class="fhint g">
+        <b>T_sat, h</b> = CoolProp.PropsSI(P, Q, "Ammonia") <span class="dim">— exact equations</span><br>
+        <b>SH</b> = ST − T_sat(SP) &nbsp;·&nbsp; <b>SC</b> = T_sat(DP) − T_liq
+      </div>
+      <div class="frow">
+        <div class="field"><label>SP – Suction Pressure <span class="unit">[kg/cm²g]</span></label>
+          <input id="sp" type="number" step="0.01" placeholder="เช่น 1.45"></div>
+        <div class="field"><label>ST – Suction Temp <span class="unit">[°C]</span></label>
+          <input id="st" type="number" step="0.1" placeholder="เช่น -6.4"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label>DP – Discharge Pressure <span class="unit">[kg/cm²g]</span></label>
+          <input id="dp" type="number" step="0.01" placeholder="เช่น 14.10"></div>
+        <div class="field"><label>DT – Discharge Temp <span class="unit">[°C]</span></label>
+          <input id="dt" type="number" step="0.1" placeholder="เช่น 94.4"></div>
+      </div>
+      <div class="frow one">
+        <div class="field"><label>Liquid Temp – ก่อน Exp. Valve <span class="unit">[°C]</span></label>
+          <input id="lt" type="number" step="0.1" placeholder="เช่น 30"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="btn" id="calcbtn" onclick="calculate()">▶ คำนวณ</button>
+
+<!-- Results -->
+<div id="results" class="hidden">
+
+  <div class="rcards">
+    <div class="rcard c">
+      <div class="rl">P_comp</div>
+      <div class="rv c" id="r-pcomp">—<span class="ru">kW</span></div>
+      <div class="rsub" id="r-pcomp-sub"></div>
+    </div>
+    <div class="rcard g">
+      <div class="rl">COP</div>
+      <div class="rv g" id="r-cop">—</div>
+      <div class="rsub" id="r-cop-sub"></div>
+    </div>
+    <div class="rcard a">
+      <div class="rl">Q_e — Cooling Capacity</div>
+      <div class="rv a" id="r-qe">—<span class="ru">kW</span></div>
+      <div class="rsub" id="r-qe-sub"></div>
+    </div>
+    <div class="rcard m">
+      <div class="rl">ṁ — Mass Flow Rate</div>
+      <div class="rv c" id="r-mdot">—<span class="ru">kg/s</span></div>
+      <div class="rsub" id="r-mdot-sub"></div>
+    </div>
+  </div>
+
+  <div id="warnings-box"></div>
+
+  <!-- Detail -->
+  <div class="dtable-wrap">
+    <div class="ph" onclick="toggleDetail()">
+      <div class="pnum g">↓</div>
+      <h2>รายละเอียด — Enthalpy & Cycle Points</h2>
+      <span class="toggle" id="dtoggle">▾</span>
+    </div>
+    <div id="detail-body" class="hidden">
+      <table class="dt">
+        <tr class="sec"><td colspan="2">Pressure Conversion</td></tr>
+        <tr><td>P_low (abs)</td><td id="d-plow">—</td></tr>
+        <tr><td>P_high (abs)</td><td id="d-phigh">—</td></tr>
+        <tr class="sec"><td colspan="2">Saturation Temperatures (CoolProp)</td></tr>
+        <tr><td>T_evap จาก SP</td><td id="d-tevap">—</td></tr>
+        <tr><td>T_cond จาก DP</td><td id="d-tcond">—</td></tr>
+        <tr><td>Superheat — ST − T_evap</td><td id="d-sh">—</td></tr>
+        <tr><td>Subcool — T_cond − T_liq</td><td id="d-sc">—</td></tr>
+        <tr class="sec"><td colspan="2">Enthalpy Points (CoolProp)</td></tr>
+        <tr><td>h₁ — เข้า Compressor (superheated vapor)</td><td id="d-h1">—</td></tr>
+        <tr><td>h₂ — ออก Compressor (actual discharge)</td><td id="d-h2">—</td></tr>
+        <tr><td>h₂s — Isentropic discharge</td><td id="d-h2s">—</td></tr>
+        <tr><td>T₂s — Isentropic discharge temp</td><td id="d-t2s">—</td></tr>
+        <tr><td>h₃ — ออก Condenser (subcooled liq.)</td><td id="d-h3">—</td></tr>
+        <tr><td>h₄ — หลัง Expansion Valve (= h₃)</td><td id="d-h4">—</td></tr>
+        <tr class="sec"><td colspan="2">Per Unit Mass</td></tr>
+        <tr><td>q_L = h₁ − h₄ (cooling effect)</td><td id="d-ql">—</td></tr>
+        <tr><td>w_comp = h₂ − h₁ (actual work)</td><td id="d-wcomp">—</td></tr>
+        <tr><td>q_H = h₂ − h₃ (heat rejected)</td><td id="d-qh">—</td></tr>
+        <tr><td>η_isentropic = (h₂s−h₁)/(h₂−h₁)</td><td id="d-etais">—</td></tr>
+        <tr class="sec"><td colspan="2">System Output</td></tr>
+        <tr><td>Q_H — Heat rejection at condenser</td><td id="d-qhkw">—</td></tr>
+        <tr><td>ṁ — Mass flow rate</td><td id="d-mdothr">—</td></tr>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Formula Reference -->
+<div class="fref" id="fref" style="margin-top:16px">
+  <div class="ph" onclick="toggleFormulas()">
+    <div class="pnum a">f</div>
+    <h2>สูตรที่ใช้คำนวณ — Formula Reference</h2>
+    <span class="toggle" id="ftoggle">▾</span>
+  </div>
+  <div class="fref-body" id="fref-body">
+
+    <div class="fblock">
+      <h3>① Compressor Power (3-phase, ค่าคงที่ V=385, PF=0.86)</h3>
+      <div class="eq"><b>P_comp</b> (kW) = 1.732 × 385 × I × 0.86 ÷ 1000
+<span class="cm">  // = I × 0.5728   (สูตรลัด)</span></div>
+    </div>
+
+    <div class="fblock">
+      <h3 class="g">② Pressure Conversion</h3>
+      <div class="eq g"><b>P_abs</b> (Pa) = (P_gauge × 98066.5) + 101325
+<span class="cm">  // 1 kg/cm² = 98066.5 Pa, Patm = 101325 Pa</span></div>
+    </div>
+
+    <div class="fblock">
+      <h3 class="g">③ CoolProp Property Lookup (NH₃)</h3>
+      <div class="eq g">from CoolProp.CoolProp import PropsSI
+
+<b>T_sat</b> = PropsSI("T","P",P_low,"Q",1,"Ammonia") − 273.15
+<b>h1</b>    = PropsSI("H","P",P_low, "T",T_suction+273.15,"Ammonia") / 1000
+<b>h2</b>    = PropsSI("H","P",P_high,"T",T_discharge+273.15,"Ammonia") / 1000
+<b>h3</b>    = PropsSI("H","P",P_high,"T",T_liquid+273.15,"Ammonia") / 1000
+<b>h4</b>    = h3   <span class="cm"># isenthalpic expansion</span></div>
+    </div>
+
+    <div class="fblock">
+      <h3 class="a">④ Cycle Performance</h3>
+      <div class="eq a"><b>COP</b>    = (h1 − h4) / (h2 − h1)
+<b>Q_e</b>    = P_comp × COP                   <span class="cm">[kW]</span>
+<b>Q_H</b>    = Q_e + P_comp                   <span class="cm">[kW]</span>
+<b>ṁ</b>      = Q_e / (h1 − h4)               <span class="cm">[kg/s]</span></div>
+    </div>
+
+    <div class="fblock">
+      <h3>⑤ Notes</h3>
+      <div class="eq">• V = 385 V, PF = 0.86 เป็นค่าคงที่ของระบบ
+• สูตรลัด: P_comp (kW) = I × 0.5728
+• CoolProp ใช้ Helmholtz energy EOS — แม่นเทียบ REFPROP
+• h₂ ใช้ DT จริง → COP = actual COP ของเครื่อง
+• SH &lt; 0 → liquid slugging → ตรวจ EXV ด่วน
+• SC &lt; 0 → flash gas ก่อน EXV → ประสิทธิภาพลด</div>
+    </div>
+
+  </div>
+</div>
+
+</div>
+
+<script>
+const V_CONST  = 385;
+const PF_CONST = 0.86;
+
+function toggleDetail() {
+  const b = document.getElementById('detail-body');
+  const t = document.getElementById('dtoggle');
+  b.classList.toggle('hidden');
+  t.classList.toggle('open');
+}
+function toggleFormulas() {
+  const b = document.getElementById('fref-body');
+  const t = document.getElementById('ftoggle');
+  const open = b.style.display === 'block';
+  b.style.display = open ? 'none' : 'block';
+  t.classList.toggle('open', !open);
+}
+
+function set(id, html) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = html;
+}
+
+async function calculate() {
+  const I  = parseFloat(document.getElementById('cur').value);
+  const sp = parseFloat(document.getElementById('sp').value);
+  const st = parseFloat(document.getElementById('st').value);
+  const dp = parseFloat(document.getElementById('dp').value);
+  const dt = parseFloat(document.getElementById('dt').value);
+  const lt = parseFloat(document.getElementById('lt').value);
+
+  if ([I, sp, st, dp, dt, lt].some(isNaN)) {
+    alert('กรุณากรอกค่าให้ครบทุกช่อง'); return;
+  }
+
+  const btn = document.getElementById('calcbtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>กำลังคำนวณ...';
+
+  const payload = {
+    voltage:      V_CONST,
+    current:      I,
+    power_factor: PF_CONST,
+    sp, st, dp, dt,
+    liquid_temp:  lt,
+  };
+
+  try {
+    const res = await fetch('/calculate', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      alert('Error: ' + JSON.stringify(err.detail || err));
+      return;
+    }
+    const d = await res.json();
+    renderResults(d, I);
+  } catch (e) {
+    alert('ไม่สามารถเชื่อมต่อ server ได้: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '▶ คำนวณ';
+  }
+}
+
+function fmt(v, d=2) { return v != null ? Number(v).toFixed(d) : '—'; }
+
+function renderResults(d, I) {
+  const p = d.performance, sat = d.saturation, enth = d.enthalpy, inp2 = d.inputs;
+
+  document.getElementById('results').classList.remove('hidden');
+
+  set('r-pcomp', `${fmt(p.P_comp_kW,2)}<span class="ru">kW</span>`);
+  set('r-pcomp-sub', `${I}A × 0.5728 = ${fmt(p.P_comp_kW,2)} kW`);
+
+  set('r-cop', fmt(p.COP, 3));
+  set('r-cop-sub', `SH ${fmt(sat.superheat,1)} K · SC ${fmt(sat.subcool,1)} K`);
+
+  set('r-qe', `${fmt(p.Q_e_kW,2)}<span class="ru">kW</span>`);
+  set('r-qe-sub', `${fmt(p.TR,1)} TR · Q_H = ${fmt(p.Q_H_kW,2)} kW`);
+
+  set('r-mdot', `${fmt(p.m_dot_kgs,4)}<span class="ru">kg/s</span>`);
+  set('r-mdot-sub', `${fmt(p.m_dot_kgh,1)} kg/h`);
+
+  set('d-plow',  `${fmt(inp2.P_low_kPa,1)} kPa abs`);
+  set('d-phigh', `${fmt(inp2.P_high_kPa,1)} kPa abs`);
+  set('d-tevap', `${fmt(sat.T_evap,2)} °C`);
+  set('d-tcond', `${fmt(sat.T_cond,2)} °C`);
+  const shStyle = sat.superheat < 0 ? 'color:var(--red)' : sat.superheat > 25 ? 'color:var(--amber)' : '';
+  const scStyle = sat.subcool < 0 ? 'color:var(--red)' : '';
+  set('d-sh',    `<span style="${shStyle}">${fmt(sat.superheat,2)} K</span>`);
+  set('d-sc',    `<span style="${scStyle}">${fmt(sat.subcool,2)} K</span>`);
+  set('d-h1',    `${fmt(enth.h1,2)} kJ/kg`);
+  set('d-h2',    `${fmt(enth.h2,2)} kJ/kg`);
+  set('d-h2s',   `${fmt(enth.h2s,2)} kJ/kg`);
+  set('d-t2s',   `${fmt(enth.T2s_degC,2)} °C`);
+  set('d-h3',    `${fmt(enth.h3,2)} kJ/kg`);
+  set('d-h4',    `${fmt(enth.h4,2)} kJ/kg`);
+  set('d-ql',    `${fmt(p.q_L,2)} kJ/kg`);
+  set('d-wcomp', `${fmt(p.w_comp,2)} kJ/kg`);
+  set('d-qh',    `${fmt(p.q_H,2)} kJ/kg`);
+  const etaStyle = p.eta_isentropic && p.eta_isentropic < 65 ? 'color:var(--amber)' : '';
+  set('d-etais', p.eta_isentropic != null
+    ? `<span style="${etaStyle}">${fmt(p.eta_isentropic,1)} %</span>` : '—');
+  set('d-qhkw',  `${fmt(p.Q_H_kW,2)} kW`);
+  set('d-mdothr',`${fmt(p.m_dot_kgh,1)} kg/h`);
+
+  const wb = document.getElementById('warnings-box');
+  wb.innerHTML = d.warnings.map(w =>
+    `<div class="wbox ${w.level}">⚠ ${w.msg}</div>`
+  ).join('');
+
+  const db = document.getElementById('detail-body');
+  if (db.classList.contains('hidden')) toggleDetail();
+  document.getElementById('results').scrollIntoView({behavior:'smooth', block:'start'});
+}
+</script>
+</body>
+</html>
