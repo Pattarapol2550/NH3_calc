@@ -9,17 +9,11 @@ from typing import Optional
 app = FastAPI(title="NH3 Refrigeration Calculator")
 
 BASE_DIR = Path(__file__).parent
-STATIC_DIR = BASE_DIR / "static"
-
-app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+STATIC_DIR = BASE_DIR / "static_react"
 
 @app.get("/")
 def root():
     return FileResponse(STATIC_DIR / "index.html")
-
-@app.get("/twostage")
-def twostage():
-    return FileResponse(STATIC_DIR / "twostage.html")
 
 
 # ── Single-stage ─────────────────────────────────────────────────────────────
@@ -305,6 +299,23 @@ def calculate_two(data: TwoStageInput):
         "warnings": warnings,
     }
 
+
+from fastapi.responses import HTMLResponse
+from fastapi import Request
+from fastapi.staticfiles import StaticFiles as _SF
+
+# Mount static assets AFTER API routes so /calculate etc. are not intercepted
+# This serves /assets/*, /favicon.svg etc. from static_react folder
+app.mount("/assets", _SF(directory=STATIC_DIR / "assets"), name="assets")
+
+@app.get("/{full_path:path}")
+async def spa_fallback(request: Request, full_path: str):
+    # Try to serve actual file first (favicon, icons, etc.)
+    file = STATIC_DIR / full_path
+    if file.exists() and file.is_file():
+        return FileResponse(file)
+    # Otherwise serve index.html for React Router
+    return FileResponse(STATIC_DIR / "index.html")
 
 if __name__ == "__main__":
     import uvicorn
