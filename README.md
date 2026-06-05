@@ -1,65 +1,112 @@
 # NH₃ Refrigeration Calculator
 
-FastAPI + CoolProp backend, HTML frontend
+เครื่องคำนวณระบบทำความเย็น Ammonia (R-717) สำหรับ Single-stage และ Two-stage  
+Powered by **CoolProp** (REFPROP-quality NH₃ properties) + **FastAPI** + **React**
 
-## วิธีรัน
+---
+
+## Features
+
+- **Single-stage** — คำนวณ P_comp → COP → Q_e → ṁ จาก operating data
+- **Two-stage (closed intercooler)** — Booster + High stage แยก I กัน, Inter tank energy balance
+- กรอกแค่ค่าที่มี — ค่าที่เว้นว่างใช้ค่า assume อัตโนมัติ (SH=5K, η_is=0.70, SC=0)
+- แสดง mode badge ว่าค่าไหน measured / assumed
+- สูตรอธิบายครบทุกขั้นตอน กางดูได้ล่างสุดแต่ละหน้า
+
+---
+
+## Input
+
+| Field | Unit | หมายเหตุ |
+|-------|------|----------|
+| I (booster / high stage) | A | **Required** — V=385, PF=0.86 คงที่ |
+| SP — Suction Pressure | kg/cm²g | **Required** |
+| DP — Discharge Pressure | kg/cm²g | **Required** |
+| T_int — Inter tank temp | °C | **Required (Two-stage)** — default −7°C |
+| ST — Suction Temp | °C | Optional → assume SH = 5K |
+| DT — Discharge Temp | °C | Optional → assume η_is = 0.70 |
+| Liquid Temp | °C | Optional → assume SC = 0 |
+
+## Output
+
+| ค่า | หน่วย |
+|-----|-------|
+| P_comp / W_booster / W_high | kW |
+| COP (system) | — |
+| Q_e — Cooling Capacity | kW, TR |
+| Q_H / Q_cond | kW |
+| ṁ_low / ṁ_high | kg/s, kg/h |
+| η_isentropic | % |
+| h1–h7, SH, SC, T_evap, T_cond | kJ/kg, K, °C |
+
+---
+
+## วิธีรัน (Local)
 
 ```bash
-# 1. ติดตั้ง dependencies
+# 1. ติดตั้ง Python dependencies
 pip install -r requirements.txt
 
 # 2. รัน server
-uvicorn main:app --reload --port 8000
+python main.py
 
 # 3. เปิด browser
 http://localhost:8000
 ```
 
+---
+
+## วิธีแก้ไข Frontend แล้ว Build ใหม่
+
+```bash
+cd frontend
+npm install        # ครั้งแรกเท่านั้น
+npm run build      # build ออกที่ ../static_react/
+```
+
+---
+
 ## โครงสร้างไฟล์
 
 ```
-nh3_calc/
-├── main.py              ← FastAPI + CoolProp calculations
+├── main.py                      ← FastAPI backend + serve React
 ├── requirements.txt
-└── static/
-    └── index.html       ← Frontend
+├── static_react/                ← React build output (FastAPI serve จากนี้)
+└── frontend/                    ← React source
+    ├── src/
+    │   ├── App.jsx              ← Router + Nav
+    │   ├── App.css              ← Global styles
+    │   ├── pages/
+    │   │   ├── SingleStage.jsx
+    │   │   └── TwoStage.jsx
+    │   └── components/
+    │       ├── InputField.jsx
+    │       ├── ResultCard.jsx
+    │       └── FormulaRef.jsx   ← สูตรอธิบาย
+    ├── index.html
+    ├── vite.config.js
+    └── package.json
 ```
 
-## Input
+---
 
-| Field | Unit | คำอธิบาย |
-|-------|------|-----------|
-| Voltage | V | แรงดันไฟฟ้า 3 เฟส |
-| Current | A | กระแสไฟฟ้า |
-| Power Factor | 0–1 | Power factor |
-| SP | kg/cm²g | Suction Pressure |
-| ST | °C | Suction Temperature |
-| DP | kg/cm²g | Discharge Pressure |
-| DT | °C | Discharge Temperature |
-| Liquid Temp | °C | อุณหภูมิของเหลวก่อน Expansion Valve |
+## API Endpoints
 
-## Output
+```
+POST /calculate      ← Single-stage
+POST /calculate_two  ← Two-stage
+```
 
-- **P_comp** — กำลังคอมเพรสเซอร์ [kW]
-- **COP** — Coefficient of Performance
-- **Q_e** — Cooling capacity [kW, TR]
-- **ṁ** — Mass flow rate [kg/s, kg/h]
-- **Q_H** — Heat rejection at condenser [kW]
-- **η_isentropic** — Isentropic efficiency ของ compressor [%]
-- **h₁–h₄** — Enthalpy ที่แต่ละจุดบน P-h diagram [kJ/kg]
-- **SH, SC** — Superheat, Subcool [K]
-
-## API
-
-`POST /calculate` — รับ JSON, คืน JSON
-
+ตัวอย่าง Single-stage:
 ```bash
 curl -X POST http://localhost:8000/calculate \
   -H "Content-Type: application/json" \
   -d '{
-    "voltage": 385, "current": 196, "power_factor": 0.86,
-    "sp": 1.45, "st": -6.40,
-    "dp": 14.10, "dt": 94.40,
-    "liquid_temp": 30
+    "current": 196,
+    "sp": 1.45,
+    "dp": 14.10,
+    "st": -6.4,
+    "voltage": 385,
+    "power_factor": 0.86
   }'
 ```
