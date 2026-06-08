@@ -30,7 +30,7 @@ class CalcInput(BaseModel):
     power_factor: float = 0.86
 
 def kgcm2g_to_Pa(p: float) -> float:
-    return (p * 98066.5) + 101325
+    return (p * 98066.5) 
 
 @app.post("/calculate")
 def calculate(data: CalcInput):
