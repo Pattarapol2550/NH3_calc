@@ -2,9 +2,11 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
-from CoolProp.CoolProp import PropsSI
+from CoolProp.CoolProp import PropsSI, set_reference_state
 from pathlib import Path
 from typing import Optional
+
+set_reference_state("Ammonia", "IIR")
 
 app = FastAPI(title="NH3 Refrigeration Calculator")
 
