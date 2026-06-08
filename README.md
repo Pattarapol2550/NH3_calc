@@ -1,3 +1,4 @@
+https://nh3-calc.onrender.com
 # NH₃ Refrigeration Calculator
 
 เครื่องคำนวณระบบทำความเย็น Ammonia (R-717) สำหรับ Single-stage และ Two-stage  
